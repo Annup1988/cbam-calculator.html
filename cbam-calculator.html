@@ -689,7 +689,67 @@
 </style>
 </head>
 <body>
-<div class="container">
+
+<!-- PASSWORD GATE -->
+<div id="passwordGate" style="
+  min-height:100vh;
+  background:#0a0c0e;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Sans',sans-serif;
+">
+  <div style="
+    background:#111417;
+    border:1px solid #242930;
+    border-radius:16px;
+    padding:48px 40px;
+    max-width:420px;width:90%;
+    text-align:center;
+  ">
+    <div style="font-size:32px;margin-bottom:16px;">🔒</div>
+    <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#e8edf2;margin-bottom:8px;">CBAM Calculator</div>
+    <div style="font-size:13px;color:#8a9aaa;margin-bottom:32px;line-height:1.6;">
+      This tool is exclusive to CBAM Survival Guide buyers.<br>Enter your access password to continue.
+    </div>
+    <input id="pwInput" type="password" placeholder="Enter access password"
+      style="
+        width:100%;background:#181c20;border:1px solid #2e3540;
+        color:#e8edf2;padding:14px 16px;border-radius:8px;
+        font-family:'DM Mono',monospace;font-size:15px;
+        margin-bottom:12px;text-align:center;letter-spacing:0.1em;
+        outline:none;
+      "
+      onkeydown="if(event.key==='Enter') checkPassword()"
+    >
+    <div id="pwError" style="color:#ff4757;font-size:12px;font-family:'DM Mono',monospace;margin-bottom:12px;display:none;">
+      ✕ Incorrect password. Please try again.
+    </div>
+    <button onclick="checkPassword()" style="
+      width:100%;background:#00c896;color:#000;
+      font-family:'Syne',sans-serif;font-weight:700;font-size:15px;
+      padding:14px;border-radius:8px;border:none;cursor:pointer;
+    ">Access Calculator →</button>
+    <div style="margin-top:24px;font-size:12px;color:#4a5a6a;line-height:1.6;">
+      Don't have the password?<br>
+      <a href="https://gumroad.com" target="_blank" style="color:#0072ff;text-decoration:none;">Get the CBAM Survival Guide on Gumroad →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function checkPassword() {
+    const input = document.getElementById('pwInput').value.trim();
+    if (input === 'CBAM2026') {
+      document.getElementById('passwordGate').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+    } else {
+      document.getElementById('pwError').style.display = 'block';
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwInput').focus();
+    }
+  }
+</script>
+
+<div class="container" id="mainContent" style="display:none">
 
   <!-- HEADER -->
   <div class="header">
@@ -905,7 +965,7 @@
     <h3>Need Help With Your Exact CBAM Calculation?</h3>
     <p>This calculator gives you a directional figure. For company-specific strategy — including actual vs default comparison, GHG inventory building, and decarbonisation financial cases — book a consultation.</p>
     <div class="cta-buttons">
-      <a href="mailto:annup.kashyap88@gmail.com" class="btn-primary">Book a Consultation</a>
+      <a href="/cdn-cgi/l/email-protection#87e6e9e9f2f7a9ece6f4effee6f7bfbfc7e0eae6eeeba9e4e8ea" class="btn-primary">Book a Consultation</a>
       <a href="https://gumroad.com" class="btn-secondary" target="_blank">Download Full Guide (Gumroad)</a>
     </div>
   </div>
@@ -913,12 +973,12 @@
   <div class="footer">
     Based on EU CBAM Regulation 2023/956. EU carbon prices fluctuate — recalculate quarterly.<br>
     This calculator is for informational purposes. For company-specific advice, consult a qualified CBAM advisor.<br><br>
-    © 2026 Annup Kashyap · Industrial Decarbonisation Advisor · annup.kashyap88@gmail.com
+    © 2026 Annup Kashyap · Industrial Decarbonisation Advisor · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="660708081316480d07150e1f07165e5e26010b070f0a4805090b">[email&#160;protected]</a>
   </div>
 
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   const PRODUCTS = {
     steel: [
       { name: 'BF-BOF Steel', default: 2.16, range: '1.8–2.5' },
@@ -1146,16 +1206,4 @@
 
     // Set values
     document.getElementById('exportVolume').value = volume;
-    document.getElementById('actualIntensity').value = intensity;
-    recalculate();
-
-    // Scroll to inputs
-    document.getElementById('exportVolume').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  // Init
-  populateProducts();
-  updatePrice();
-</script>
-</body>
-</html>
+    doc
