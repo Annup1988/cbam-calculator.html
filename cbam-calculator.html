@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBAM Liability Calculator — Annup Kashyap</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0e;
+    --surface: #111417;
+    --surface2: #181c20;
+    --border: #242930;
+    --border2: #2e3540;
+    --accent: #00c896;
+    --accent2: #0072ff;
+    --warn: #ff6b35;
+    --text: #e8edf2;
+    --text2: #8a9aaa;
+    --text3: #4a5a6a;
+    --eu-blue: #003399;
+    --eu-gold: #ffcc00;
+    --red: #ff4757;
+    --green: #00c896;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,150,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,150,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,200,150,0.1);
+    border: 1px solid rgba(0,200,150,0.25);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    padding: 6px 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    color: var(--text2);
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 1.6;
+    max-width: 560px;
+  }
+
+  .author-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .author-row strong { color: var(--text2); }
+
+  /* Carbon price ticker */
+  .price-ticker {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .price-ticker .label {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .price-ticker .value {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .price-ticker .inr {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .price-note {
+    font-size: 12px;
+    color: var(--text3);
+    max-width: 320px;
+    line-height: 1.5;
+  }
+
+  /* Section label */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  /* Sector grid */
+  .sector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .sector-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+
+  .sector-btn:hover {
+    border-color: var(--border2);
+    background: #1e2329;
+  }
+
+  .sector-btn.active {
+    border-color: var(--accent);
+    background: rgba(0,200,150,0.08);
+  }
+
+  .sector-btn .icon { font-size: 22px; margin-bottom: 6px; display: block; }
+
+  .sector-btn .name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    display: block;
+  }
+
+  .sector-btn.active .name { color: var(--accent); }
+
+  /* Product select */
+  .select-wrapper {
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 13px 16px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  select:focus { outline: none; border-color: var(--accent); }
+
+  .select-arrow {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    pointer-events: none;
+    font-size: 12px;
+  }
+
+  /* Input row */
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 540px) { .input-grid { grid-template-columns: 1fr; } }
+
+  .field { position: relative; }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 13px 48px 13px 16px;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    transition: border-color 0.15s;
+  }
+
+  .field input:focus { outline: none; border-color: var(--accent); }
+
+  .field .unit {
+    position: absolute;
+    right: 14px;
+    bottom: 13px;
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .default-badge {
+    display: inline-block;
+    background: rgba(0,114,255,0.12);
+    border: 1px solid rgba(0,114,255,0.25);
+    color: var(--accent2);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .default-badge:hover { background: rgba(0,114,255,0.2); }
+
+  /* Results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 540px) { .results-grid { grid-template-columns: 1fr; } }
+
+  .result-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.2s ease;
+  }
+
+  .result-card.winner {
+    border-color: var(--accent);
+    background: rgba(0,200,150,0.06);
+  }
+
+  .result-card.loser {
+    opacity: 0.6;
+  }
+
+  .result-card .result-label {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .result-card.winner .result-label { color: var(--accent); }
+
+  .winner-tag {
+    background: var(--accent);
+    color: #000;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+  }
+
+  .result-eur {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    transition: all 0.3s ease;
+  }
+
+  .result-card.winner .result-eur { color: var(--accent); }
+
+  .result-inr {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .result-intensity {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Saving highlight */
+  .saving-banner {
+    background: linear-gradient(135deg, rgba(0,200,150,0.12), rgba(0,114,255,0.08));
+    border: 1px solid rgba(0,200,150,0.3);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .saving-banner .saving-label {
+    font-size: 12px;
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .saving-banner .saving-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .saving-banner .saving-inr {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .saving-banner .saving-advice {
+    font-size: 13px;
+    color: var(--text2);
+    max-width: 280px;
+    line-height: 1.5;
+  }
+
+  /* Urgency meter */
+  .urgency-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .urgency-title {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    margin-bottom: 14px;
+  }
+
+  .urgency-bar-bg {
+    background: var(--surface2);
+    border-radius: 4px;
+    height: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  .urgency-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease, background 0.3s ease;
+  }
+
+  .urgency-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .urgency-action {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  /* Formula display */
+  .formula-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 20px;
+    line-height: 1.8;
+  }
+
+  .formula-box .formula-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .formula-box .val { color: var(--accent); font-weight: 500; }
+  .formula-box .op { color: var(--text3); }
+
+  /* Examples */
+  .examples-section { margin-top: 40px; }
+
+  .example-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .example-card:hover {
+    border-color: var(--border2);
+    background: var(--surface2);
+  }
+
+  .example-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .example-sector {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .example-saving {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    background: rgba(0,200,150,0.1);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  .example-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+  }
+
+  .example-details strong { display: block; color: var(--text2); font-size: 13px; margin-bottom: 2px; }
+
+  .load-example {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--accent2);
+    font-family: 'DM Mono', monospace;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* CTA */
+  .cta-card {
+    background: linear-gradient(135deg, #0d1f3c, #0a1a1a);
+    border: 1px solid rgba(0,200,150,0.2);
+    border-radius: 12px;
+    padding: 32px;
+    margin-top: 40px;
+    text-align: center;
+  }
+
+  .cta-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .cta-card p {
+    color: var(--text2);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 13px 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.15s;
+    display: inline-block;
+  }
+
+  .btn-primary:hover { opacity: 0.88; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 13px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    display: inline-block;
+  }
+
+  .btn-secondary:hover { border-color: var(--text2); color: var(--text); }
+
+  /* Footer */
+  .footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  /* Hidden state */
+  .hidden { display: none !important; }
+
+  /* Animate in */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in {
+    animation: fadeUp 0.4s ease forwards;
+  }
+
+  .no-result { color: var(--text3); font-family: 'DM Mono', monospace; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="badge">CBAM Calculator · 2026 Edition</div>
+    <h1>Calculate Your <span>CBAM</span><br>Liability in 60 Seconds</h1>
+    <p class="subtitle">Interactive companion to the CBAM Survival Guide. Enter your export data to get your exact EU carbon tax liability — and find out how much you could save.</p>
+    <div class="author-row">
+      <span>By <strong>Annup Kashyap</strong></span>
+      <span>·</span>
+      <span>Assistant Director, Indian Steel Association</span>
+      <span>·</span>
+      <span>13 Years · CBAM Expert</span>
+    </div>
+  </div>
+
+  <!-- CARBON PRICE TICKER -->
+  <div class="price-ticker">
+    <div>
+      <div class="label">EU ETS Carbon Price (Mar 2026)</div>
+      <div class="value" id="carbonPrice">€65.00</div>
+      <div class="inr" id="carbonPriceINR">≈ ₹5,785 per tonne CO₂</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div>
+        <div class="label">Exchange Rate</div>
+        <div style="font-family:'DM Mono',monospace;font-size:16px;color:var(--text)">1 EUR = ₹<input id="fxRate" type="number" value="89" step="0.5" style="background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:16px;width:50px;padding:2px 4px;" oninput="recalculate()"></div>
+      </div>
+      <div>
+        <div class="label">Carbon Price (€/t)</div>
+        <div style="font-family:'DM Mono',monospace;font-size:16px;color:var(--text)">€<input id="etsPrice" type="number" value="65" step="1" style="background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:16px;width:50px;padding:2px 4px;" oninput="updatePrice()"></div>
+      </div>
+    </div>
+    <div class="price-note">EU carbon prices fluctuate daily. Adjust the price above if you have a more current figure. Recalculates in real-time.</div>
+  </div>
+
+  <!-- STEP 1: SECTOR -->
+  <div class="section-label">Step 01 — Select Your Sector</div>
+  <div class="card">
+    <div class="card-title">What do you export to the EU?</div>
+    <div class="card-desc">Choose your primary export sector. You can calculate for multiple sectors separately.</div>
+
+    <div class="sector-grid">
+      <div class="sector-btn active" onclick="selectSector('steel',this)">
+        <span class="icon">⚙️</span>
+        <span class="name">Steel & Iron</span>
+      </div>
+      <div class="sector-btn" onclick="selectSector('cement',this)">
+        <span class="icon">🏗️</span>
+        <span class="name">Cement</span>
+      </div>
+      <div class="sector-btn" onclick="selectSector('aluminium',this)">
+        <span class="icon">⚡</span>
+        <span class="name">Aluminium</span>
+      </div>
+      <div class="sector-btn" onclick="selectSector('fertilisers',this)">
+        <span class="icon">🌿</span>
+        <span class="name">Fertilisers</span>
+      </div>
+      <div class="sector-btn" onclick="selectSector('hydrogen',this)">
+        <span class="icon">💧</span>
+        <span class="name">Hydrogen</span>
+      </div>
+    </div>
+
+    <!-- Product dropdown -->
+    <div class="section-label" style="margin-top:4px;">Step 02 — Select Product Type</div>
+    <div class="select-wrapper">
+      <select id="productSelect" onchange="onProductChange()">
+        <option value="">-- Select product --</option>
+      </select>
+      <span class="select-arrow">▾</span>
+    </div>
+
+    <div id="defaultInfo" class="formula-box" style="display:none;">
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">EU Default Emission Intensity</div>
+      <div style="font-size:20px;font-family:'Syne',sans-serif;font-weight:700;color:var(--accent2);" id="defaultValue">—</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px;">t CO₂ per tonne of product (EU Regulation 2023/956)</div>
+    </div>
+  </div>
+
+  <!-- STEP 3: INPUTS -->
+  <div class="section-label">Step 03 — Enter Your Data</div>
+  <div class="card">
+    <div class="card-title">Your Export & Emission Data</div>
+    <div class="card-desc">Enter your annual EU export volume. Then enter your actual emission intensity — or use the EU default value.</div>
+
+    <div class="input-grid">
+      <div class="field">
+        <label>Annual EU Export Volume</label>
+        <input type="number" id="exportVolume" placeholder="e.g. 300000" oninput="recalculate()">
+        <span class="unit">t/yr</span>
+        <div style="margin-top:6px;font-size:11px;color:var(--text3);">Source: Export dept or logistics team</div>
+      </div>
+      <div class="field">
+        <label>Your Actual Emission Intensity</label>
+        <input type="number" id="actualIntensity" placeholder="e.g. 1.95" step="0.01" oninput="recalculate()">
+        <span class="unit">t CO₂/t</span>
+        <span class="default-badge" id="useDefaultBtn" onclick="useDefaultValue()">↙ Use EU default value</span>
+      </div>
+    </div>
+
+    <!-- Live formula -->
+    <div class="formula-box" id="formulaDisplay">
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">The One Formula You Need</div>
+      <div class="formula-line">
+        <span class="val" id="f-vol">[ tonnes ]</span>
+        <span class="op">×</span>
+        <span class="val" id="f-int">[ intensity ]</span>
+        <span class="op">×</span>
+        <span class="val" id="f-price">€65</span>
+        <span class="op">=</span>
+        <span class="val" id="f-result" style="color:var(--text2);">[ CBAM liability ]</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsSection" class="hidden">
+    <div class="section-label">Step 04 — Your CBAM Liability</div>
+
+    <div class="results-grid">
+      <div class="result-card" id="card-default">
+        <div class="result-label">Using EU Default Value</div>
+        <div class="result-eur" id="res-default-eur">—</div>
+        <div class="result-inr" id="res-default-inr">—</div>
+        <div class="result-intensity" id="res-default-int">—</div>
+      </div>
+      <div class="result-card" id="card-actual">
+        <div class="result-label">Using Your Actual Data <span class="winner-tag hidden" id="actual-winner-tag">CHOOSE THIS</span></div>
+        <div class="result-eur" id="res-actual-eur">—</div>
+        <div class="result-inr" id="res-actual-inr">—</div>
+        <div class="result-intensity" id="res-actual-int">—</div>
+      </div>
+    </div>
+
+    <div class="saving-banner" id="savingBanner">
+      <div>
+        <div class="saving-label" id="saving-label-text">Potential Annual Saving</div>
+        <div class="saving-value" id="saving-eur">—</div>
+        <div class="saving-inr" id="saving-inr">—</div>
+      </div>
+      <div class="saving-advice" id="saving-advice">—</div>
+    </div>
+
+    <!-- Urgency -->
+    <div class="urgency-card">
+      <div class="urgency-title">Your CBAM Urgency Level</div>
+      <div class="urgency-bar-bg"><div class="urgency-bar-fill" id="urgencyBar" style="width:0%;background:var(--accent)"></div></div>
+      <div class="urgency-text" id="urgencyLabel">—</div>
+      <div class="urgency-action" id="urgencyAction">—</div>
+    </div>
+  </div>
+
+  <!-- WORKED EXAMPLES -->
+  <div class="examples-section">
+    <div class="section-label">Reference — Worked Examples (from Guide)</div>
+
+    <div class="example-card">
+      <div class="example-header">
+        <div class="example-sector">⚙️ Steel Company</div>
+        <div class="example-saving">Save ₹36 Crore/yr</div>
+      </div>
+      <div class="example-details">
+        <div><strong>300,000 t/yr</strong>EU Exports</div>
+        <div><strong>1.95 t CO₂/t</strong>Actual Intensity</div>
+        <div><strong>€38M liability</strong>Using actual data</div>
+      </div>
+      <span class="load-example" onclick="loadExample('steel','BF-BOF Steel',300000,1.95)">↙ Load this example into calculator</span>
+    </div>
+
+    <div class="example-card">
+      <div class="example-header">
+        <div class="example-sector">🏗️ Cement Company</div>
+        <div class="example-saving">Use EU Default — Save ₹7.3 Crore/yr</div>
+      </div>
+      <div class="example-details">
+        <div><strong>150,000 t/yr</strong>EU Exports</div>
+        <div><strong>0.85 t CO₂/t</strong>Actual Intensity</div>
+        <div><strong>€7.5M liability</strong>Using EU default</div>
+      </div>
+      <span class="load-example" onclick="loadExample('cement','Grey Cement',150000,0.85)">↙ Load this example into calculator</span>
+    </div>
+
+    <div class="example-card">
+      <div class="example-header">
+        <div class="example-sector">⚡ Aluminium Company</div>
+        <div class="example-saving">Save ₹26 Crore/yr</div>
+      </div>
+      <div class="example-details">
+        <div><strong>50,000 t/yr</strong>EU Exports</div>
+        <div><strong>5.8 t CO₂/t</strong>Actual Intensity</div>
+        <div><strong>€18.9M liability</strong>Using actual data</div>
+      </div>
+      <span class="load-example" onclick="loadExample('aluminium','Primary Aluminium',50000,5.8)">↙ Load this example into calculator</span>
+    </div>
+
+    <div class="example-card">
+      <div class="example-header">
+        <div class="example-sector">🌿 Fertiliser Company (Ammonia)</div>
+        <div class="example-saving">Save ₹20 Crore/yr</div>
+      </div>
+      <div class="example-details">
+        <div><strong>100,000 t/yr</strong>EU Exports</div>
+        <div><strong>2.50 t CO₂/t</strong>Actual Intensity</div>
+        <div><strong>€16.3M liability</strong>Using actual data</div>
+      </div>
+      <span class="load-example" onclick="loadExample('fertilisers','Ammonia',100000,2.50)">↙ Load this example into calculator</span>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-card">
+    <h3>Need Help With Your Exact CBAM Calculation?</h3>
+    <p>This calculator gives you a directional figure. For company-specific strategy — including actual vs default comparison, GHG inventory building, and decarbonisation financial cases — book a consultation.</p>
+    <div class="cta-buttons">
+      <a href="mailto:annup.kashyap88@gmail.com" class="btn-primary">Book a Consultation</a>
+      <a href="https://gumroad.com" class="btn-secondary" target="_blank">Download Full Guide (Gumroad)</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    Based on EU CBAM Regulation 2023/956. EU carbon prices fluctuate — recalculate quarterly.<br>
+    This calculator is for informational purposes. For company-specific advice, consult a qualified CBAM advisor.<br><br>
+    © 2026 Annup Kashyap · Industrial Decarbonisation Advisor · annup.kashyap88@gmail.com
+  </div>
+
+</div>
+
+<script>
+  const PRODUCTS = {
+    steel: [
+      { name: 'BF-BOF Steel', default: 2.16, range: '1.8–2.5' },
+      { name: 'EAF Steel (Indian grid)', default: 0.44, range: '0.5–0.7' },
+    ],
+    cement: [
+      { name: 'Cement Clinker', default: 0.766, range: '0.75–0.95' },
+      { name: 'Grey Cement', default: 0.568, range: '0.55–0.75' },
+      { name: 'White Cement', default: 0.987, range: '0.90–1.10' },
+    ],
+    aluminium: [
+      { name: 'Primary Aluminium', default: 6.70, range: '5.5–8.0' },
+      { name: 'Secondary Aluminium', default: 0.37, range: '0.30–0.45' },
+    ],
+    fertilisers: [
+      { name: 'Ammonia', default: 2.85, range: '2.2–3.2' },
+      { name: 'Nitric Acid', default: 1.33, range: '1.1–1.6' },
+      { name: 'Urea', default: 0.67, range: '0.55–0.80' },
+    ],
+    hydrogen: [
+      { name: 'Pure Hydrogen', default: 10.00, range: '8.0–15.0' },
+    ],
+  };
+
+  let currentSector = 'steel';
+  let currentDefault = null;
+
+  function getPrice() { return parseFloat(document.getElementById('etsPrice').value) || 65; }
+  function getFX() { return parseFloat(document.getElementById('fxRate').value) || 89; }
+
+  function updatePrice() {
+    const p = getPrice();
+    const fx = getFX();
+    document.getElementById('carbonPrice').textContent = `€${p.toFixed(2)}`;
+    document.getElementById('carbonPriceINR').textContent = `≈ ₹${(p*fx).toLocaleString('en-IN',{maximumFractionDigits:0})} per tonne CO₂`;
+    document.getElementById('f-price').textContent = `€${p}`;
+    recalculate();
+  }
+
+  function selectSector(sector, el) {
+    currentSector = sector;
+    document.querySelectorAll('.sector-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    populateProducts();
+    document.getElementById('actualIntensity').value = '';
+    document.getElementById('defaultInfo').style.display = 'none';
+    currentDefault = null;
+    clearResults();
+  }
+
+  function populateProducts() {
+    const sel = document.getElementById('productSelect');
+    sel.innerHTML = '<option value="">-- Select product --</option>';
+    (PRODUCTS[currentSector] || []).forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.textContent = `${p.name}  (EU default: ${p.default} t CO₂/t)`;
+      sel.appendChild(opt);
+    });
+    if (PRODUCTS[currentSector].length === 1) {
+      sel.selectedIndex = 1;
+      onProductChange();
+    }
+  }
+
+  function onProductChange() {
+    const sel = document.getElementById('productSelect');
+    const name = sel.value;
+    const products = PRODUCTS[currentSector];
+    const product = products.find(p => p.name === name);
+    if (!product) { currentDefault = null; document.getElementById('defaultInfo').style.display = 'none'; return; }
+    currentDefault = product.default;
+    document.getElementById('defaultValue').textContent = `${product.default} t CO₂/t  (Typical Indian range: ${product.range})`;
+    document.getElementById('defaultInfo').style.display = 'block';
+    document.getElementById('useDefaultBtn').textContent = `↙ Use EU default (${product.default})`;
+    recalculate();
+  }
+
+  function useDefaultValue() {
+    if (currentDefault === null) return;
+    document.getElementById('actualIntensity').value = currentDefault;
+    recalculate();
+  }
+
+  function fmt(n) {
+    if (n >= 1e6) return `€${(n/1e6).toFixed(2)}M`;
+    if (n >= 1e3) return `€${(n/1e3).toFixed(0)}K`;
+    return `€${n.toFixed(0)}`;
+  }
+
+  function fmtINR(eur, fx) {
+    const inr = eur * fx;
+    if (inr >= 1e7) return `≈ ₹${(inr/1e7).toFixed(1)} Crore`;
+    if (inr >= 1e5) return `≈ ₹${(inr/1e5).toFixed(1)} Lakh`;
+    return `≈ ₹${inr.toLocaleString('en-IN', {maximumFractionDigits:0})}`;
+  }
+
+  function recalculate() {
+    const vol = parseFloat(document.getElementById('exportVolume').value);
+    const actual = parseFloat(document.getElementById('actualIntensity').value);
+    const price = getPrice();
+    const fx = getFX();
+
+    // Update formula display
+    document.getElementById('f-vol').textContent = vol ? `${vol.toLocaleString('en-IN')}t` : '[ tonnes ]';
+    document.getElementById('f-int').textContent = actual ? `${actual} t CO₂/t` : '[ intensity ]';
+    document.getElementById('f-price').textContent = `€${price}`;
+
+    if (!vol || !actual) {
+      clearResults();
+      if (vol && actual) {} // nothing
+      document.getElementById('f-result').textContent = '[ CBAM liability ]';
+      document.getElementById('f-result').style.color = 'var(--text2)';
+      return;
+    }
+
+    const liabilityActual = vol * actual * price;
+    document.getElementById('f-result').textContent = fmt(liabilityActual);
+    document.getElementById('f-result').style.color = 'var(--accent)';
+
+    document.getElementById('resultsSection').classList.remove('hidden');
+
+    // Actual card
+    document.getElementById('res-actual-eur').textContent = fmt(liabilityActual);
+    document.getElementById('res-actual-inr').textContent = fmtINR(liabilityActual, fx);
+    document.getElementById('res-actual-int').textContent = `At ${actual} t CO₂/t × €${price}`;
+
+    // Default card
+    if (currentDefault !== null) {
+      const liabilityDefault = vol * currentDefault * price;
+      document.getElementById('res-default-eur').textContent = fmt(liabilityDefault);
+      document.getElementById('res-default-inr').textContent = fmtINR(liabilityDefault, fx);
+      document.getElementById('res-default-int').textContent = `At ${currentDefault} t CO₂/t (EU default) × €${price}`;
+
+      const lower = Math.min(liabilityActual, liabilityDefault);
+      const saving = Math.abs(liabilityActual - liabilityDefault);
+
+      if (liabilityActual < liabilityDefault) {
+        document.getElementById('card-actual').classList.add('winner');
+        document.getElementById('card-actual').classList.remove('loser');
+        document.getElementById('card-default').classList.add('loser');
+        document.getElementById('card-default').classList.remove('winner');
+        document.getElementById('actual-winner-tag').classList.remove('hidden');
+        document.getElementById('card-actual').querySelector('.result-label').innerHTML = 'Using Your Actual Data <span class="winner-tag" id="actual-winner-tag">✓ CHOOSE THIS</span>';
+        document.getElementById('card-default').querySelector('.result-label').innerHTML = 'Using EU Default Value';
+        document.getElementById('saving-label-text').textContent = '✓ Potential Annual Saving (use actual data)';
+        document.getElementById('saving-advice').textContent = `Your actual emission intensity (${actual}) is lower than the EU default (${currentDefault}). Using your verified data saves you ${fmtINR(saving, fx)} per year. Commission a third-party verifier immediately.`;
+      } else if (liabilityDefault < liabilityActual) {
+        document.getElementById('card-default').classList.add('winner');
+        document.getElementById('card-default').classList.remove('loser');
+        document.getElementById('card-actual').classList.add('loser');
+        document.getElementById('card-actual').classList.remove('winner');
+        document.getElementById('actual-winner-tag').classList.add('hidden');
+        document.getElementById('card-default').querySelector('.result-label').innerHTML = 'Using EU Default Value <span class="winner-tag" id="actual-winner-tag">✓ CHOOSE THIS</span>';
+        document.getElementById('card-actual').querySelector('.result-label').innerHTML = 'Using Your Actual Data';
+        document.getElementById('saving-label-text').textContent = '✓ Potential Annual Saving (use EU default)';
+        document.getElementById('saving-advice').textContent = `Your actual emissions (${actual}) are higher than the EU default (${currentDefault}). Stick with the EU default value — it reduces your liability by ${fmtINR(saving, fx)} per year.`;
+      } else {
+        document.getElementById('card-actual').classList.remove('winner','loser');
+        document.getElementById('card-default').classList.remove('winner','loser');
+        document.getElementById('saving-label-text').textContent = 'No saving — both methods equal';
+        document.getElementById('saving-advice').textContent = 'Your actual intensity matches the EU default. Choose whichever is easier to verify and report.';
+      }
+
+      document.getElementById('saving-eur').textContent = saving > 0 ? fmt(saving) : '€0';
+      document.getElementById('saving-inr').textContent = saving > 0 ? fmtINR(saving, fx) + ' per year' : '';
+
+      // Urgency
+      setUrgency(lower);
+    } else {
+      document.getElementById('res-default-eur').textContent = 'Select a product';
+      document.getElementById('res-default-inr').textContent = '';
+      document.getElementById('res-default-int').textContent = '';
+      setUrgency(liabilityActual);
+    }
+  }
+
+  function setUrgency(liability) {
+    const bar = document.getElementById('urgencyBar');
+    const label = document.getElementById('urgencyLabel');
+    const action = document.getElementById('urgencyAction');
+
+    if (liability < 1e6) {
+      bar.style.width = '20%'; bar.style.background = '#4caf50';
+      label.textContent = 'Monitor · Under €1M';
+      label.style.color = '#4caf50';
+      action.textContent = 'Focus on reporting compliance. Ensure quarterly submissions are accurate. Low financial exposure but regulatory penalties apply for non-compliance.';
+    } else if (liability < 5e6) {
+      bar.style.width = '45%'; bar.style.background = '#ff9800';
+      label.textContent = 'Important · €1M – €5M';
+      label.style.color = '#ff9800';
+      action.textContent = 'Invest in third-party verification immediately. Compare default vs actual intensities — savings at this level typically exceed verification costs within weeks.';
+    } else if (liability < 20e6) {
+      bar.style.width = '70%'; bar.style.background = '#ff6b35';
+      label.textContent = 'Urgent · €5M – €20M';
+      label.style.color = '#ff6b35';
+      action.textContent = 'Full decarbonisation strategy needed. This level of exposure justifies dedicated capital allocation. Model your CBAM saving per ₹ of emission reduction investment.';
+    } else {
+      bar.style.width = '100%'; bar.style.background = '#ff4757';
+      label.textContent = '🚨 CRITICAL · Above €20M — Board-Level Decision Required TODAY';
+      label.style.color = '#ff4757';
+      action.textContent = 'This is a strategic business risk. Immediate board escalation required. Engage a specialist advisor for full CBAM strategy including DFI green lending, CCTS registration, and EU FTA carbon equivalence positioning.';
+    }
+  }
+
+  function clearResults() {
+    document.getElementById('resultsSection').classList.add('hidden');
+  }
+
+  function loadExample(sector, productName, volume, intensity) {
+    // Set sector
+    const sectorBtns = document.querySelectorAll('.sector-btn');
+    const icons = { steel: 0, cement: 1, aluminium: 2, fertilisers: 3, hydrogen: 4 };
+    sectorBtns.forEach(b => b.classList.remove('active'));
+    sectorBtns[icons[sector]].classList.add('active');
+    currentSector = sector;
+    populateProducts();
+
+    // Set product
+    const sel = document.getElementById('productSelect');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === productName) { sel.selectedIndex = i; break; }
+    }
+    onProductChange();
+
+    // Set values
+    document.getElementById('exportVolume').value = volume;
+    document.getElementById('actualIntensity').value = intensity;
+    recalculate();
+
+    // Scroll to inputs
+    document.getElementById('exportVolume').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Init
+  populateProducts();
+  updatePrice();
+</script>
+</body>
+</html>
